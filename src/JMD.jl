@@ -58,6 +58,8 @@ include("./md/potentials/funcs/inter.jl")
 include("./md/potentials/funcs/damping.jl")
 include("./md/potentials/funcs/TTMnrg.jl")
 
+include("./md/pimd/rpmd.jl")
+
 include("./analysis/vacf.jl")
 include("./analysis/desorb.jl")
 include("./analysis/vibrations.jl")
