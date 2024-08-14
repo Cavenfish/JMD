@@ -42,7 +42,7 @@ end
 
 function getFrame(tj, i::Int64)
   m = tj.m
-  s = map(x -> x > 15 ? 'O' : 'C', tj.m)
+  s = tj.s
   r = tj.r[i]
   v = tj.v[i]
 
@@ -256,6 +256,12 @@ end
 function getPotEnergy(EoM, bdys)
   x0, vars = prep4pot(EoM, bdys)
   energy   = EoM(true, nothing, x0, vars)
+  return energy
+end
+
+function getPotEnergyGradient!(G, EoM, bdys)
+  x0, vars = prep4pot(EoM, bdys)
+  energy   = EoM(true, G, x0, vars)
   return energy
 end
 

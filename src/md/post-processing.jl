@@ -7,6 +7,7 @@ struct Traj <: MyTraj
   r::Vector
   v::Vector
   m::Vector{Float64}
+  s::Vector{Char}
 end
 
 function processDynamics(solu; dt=fs, step=1)
@@ -28,9 +29,10 @@ function processDynamics(solu; dt=fs, step=1)
   r = [solu.u[i].x[2] for i in 1:step:N]
   v = [solu.u[i].x[1] for i in 1:step:N]
   m = solu.prob.p.m
+  s = [i.s for i in solu.prob.p.bdys]
   T = [getTemp(m, i, kB, length(m)) for i in v]
 
-  return Traj(t, E, T, F, r, v, m)
+  return Traj(t, E, T, F, r, v, m, s)
 end
 
 function processDynamics!(tj, solu; dt=fs, step=1)

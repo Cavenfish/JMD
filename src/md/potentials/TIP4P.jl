@@ -16,7 +16,7 @@ struct _TIP4P_PotVars{F<:Float64} <: PotVars
 end
 
 #PotVar building function 
-TIP4P(bdys::Vector{Atom}) = _TIP4P_PotVars(
+TIP4P(bdys) = _TIP4P_PotVars(
   4.48339,    # eV
   2.287,      # \AA
   0.9419,     # \AA
