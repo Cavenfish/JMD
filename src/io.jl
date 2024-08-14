@@ -39,9 +39,16 @@ function readXyz(xyz)
     s = split(line, " ")
     s = deleteat!(s, findall(e -> e == "", s))
 
-    pos  = parse.(Float64, s[2:end])
+    pos  = parse.(Float64, s[2:4])
     pos  = Vector(pos)
-    vel  = Vector([0.0,0.0,0.0])
+    
+    vel  = if length(s) >= 7
+      tmp = parse.(Float64, s[5:end])
+      Vector(tmp)
+    else
+      Vector([0.0,0.0,0.0]) 
+    end
+    
     mas  = amu[s[1]]
     sym  = s[1][1]
 
@@ -97,7 +104,7 @@ function writeXyzTraj(fileName::String, tj::MyTraj; dt=1)
       s     = S[j]
       x,y,z = u[j]
 
-      println(f, "$s   $x   $y   $z")
+      println(f, "$s   $x   $y   $z   $vx   $vy   $vz")
     end 
 
   end
@@ -114,10 +121,11 @@ function writeXyz(fileName::String, bdys)
 
   for j in 1:N
 
-    s     = bdys[j].s
-    x,y,z = bdys[j].r
+    s          = bdys[j].s
+    x,y,z      = bdys[j].r
+    vx, vy, vz = bdys[j].v 
 
-    println(f, "$s   $x   $y   $z")
+    println(f, "$s   $x   $y   $z   $vx   $vy   $vz")
   end 
 
   close(f)
