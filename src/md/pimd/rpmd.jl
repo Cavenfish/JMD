@@ -7,6 +7,7 @@ struct RPMD
   energy::Vector
   nBeads::UInt16
   m::Vector
+  ω::Float64
   potVars::PotVars
   EoM::Function
 end
@@ -35,7 +36,7 @@ function initBeads(bdys, nBeads, tj)
   beads
 end
 
-function runRPMD_NVE(EoM, tspan, dt, bdys, nBeads, tj; kwargs...)
+function runRPMD_NVE(EoM, tspan, dt, bdys, nBeads, ω, tj; kwargs...)
   beads = initBeads(bdys, nBeads, tj)
   
   pos   = [SVector{3}(i.r) for i in beads]
@@ -44,7 +45,7 @@ function runRPMD_NVE(EoM, tspan, dt, bdys, nBeads, tj; kwargs...)
 
   potVars    = EoM(bdys)
   pars, mols = getPairs(bdys)
-  simu       = RPMD(beads, pars, mols, [], nBeads, mas, potVars, EoM)
+  simu       = RPMD(beads, pars, mols, [], nBeads, mas, ω, potVars, EoM)
 
   prob  = SecondOrderODEProblem(RPMD, vel, pos, tspan, simu; kwargs...)
   solu  = solve(prob, VelocityVerlet(), dt=dt, dense=false, calck=false)
@@ -65,13 +66,30 @@ function RPMD(dv, v, u, p, t)
     @views p.EoM(true, G[i:i+(a-1)], y0[i:i+(a-1)], p)
   end
 
-  for i in 1:3:b
+  for i = 1:3:b
     j     = div(i+2, 3)
     F[j] += -G[i:i+2]
   end
 
-  #Sping forces go here
+  b = length(u)
+  a = div(b, p.nBeads)
+  for i = 1:a:b
+    i > b-a ? j = i+a-b : j = i+a
+
+    _springPotential!(F, u, i, j, p.ω, p.m[i])
+  end
   
   dv .= F ./ p.m
+end
 
+function _springPotential!(F, u, i, j, ω, m)
+  rvec  = u[j] - u[i]
+  r     = norm(rvec)
+  E     = 0.5m * ω^2 * (r)^2 
+  f     = m * ω^2 * (r) * rvec / r
+
+  F[i] -= f
+  F[j] += f
+
+  E
 end
