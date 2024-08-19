@@ -32,17 +32,21 @@ function NASA!(F, u, mol)
     r     = norm(rvec)
     E    += D * (exp(-2a*(r-r0)) - 2*exp(-a*(r-r0)))
     f     = D * 2a * (exp(-2a*(r-r0)) - exp(-a*(r-r0))) * rvec / r
-    F[o] -= f
-    F[h] += f
+    F[h] -= f
+    F[o] += f
   end
+
+  println(F)
 
   #Vb
   rvec   = u[h1] - u[h2]
   r      = norm(rvec)
   E     += A * exp(-b*r)
   f      = b * A * exp(-b*r) * rvec / r
-  F[h1] -= f
-  F[h2] += f
+  F[h2] -= f
+  F[h1] += f
+
+  println(f)
 
   #Vc
   fmat = ones(16,3)
@@ -81,8 +85,21 @@ function NASA!(F, u, mol)
 
   end
 
-  E += 2 * c5z[1] + exp(-β*((dr1-re)^2+(dr2-re)^2)) *sum0
+  efac = exp(-β*((dr1-re)^2+(dr2-re)^2))
+
+  E += 2 * c5z[1] + efac *sum0
   E += (0.44739574026257 / 8065.544) # correction
+
+  dVcdr1  = (-2 * β * efac * (dr1 - re) * sum0 + efac * sum1 / re) / dr1
+  dVcdr2  = (-2 * β * efac * (dr2 - re) * sum0 + efac * sum2 / re) / dr2
+  dVcdcth = efac * sum3
+  
+  fh1 = -(dVcdr1*r1 + dVcdcth*(r2/(dr1*dr2)-cos(θ)*r1/(dr1^2)))
+  fh2 = -(dVcdr2*r2  + dVcdcth*(r1/(dr1*dr2)-cos(θ)*r2/(dr2^2)))
+
+  F[h1] += fh1
+  F[h2] += fh2
+  F[o]  -= (fh1 .+ fh2) 
 
   E
 end
