@@ -13,10 +13,11 @@ the functions can contain their own constants.
 """
 
 function NASA!(F, u, mol)
-  D  = 5.243363 # eV 
+  D  = 5.241716820728392 # eV 
   a  = 2.587949757553683 # \AA^-1
+  re = 0.958649 # \AA
   r0 = 0.9519607159623009 # \AA
-  A  = 0.002101 # eV
+  A  = 664.3360187165237 # eV
   b  = 12.66426998162947 # \AA^-1
   θe = 1.821207441224783 # rad
   β  = 2.0 # \AA^-2
@@ -39,7 +40,7 @@ function NASA!(F, u, mol)
   rvec   = u[h1] - u[h2]
   r      = norm(rvec)
   E     += A * exp(-b*r)
-  f      = b * E * rvec / r
+  f      = b * A * exp(-b*r) * rvec / r
   F[h1] -= f
   F[h2] += f
 
@@ -51,9 +52,9 @@ function NASA!(F, u, mol)
   r2  = u[h2] - u[o]
   dr1 = norm(r1)
   dr2 = norm(r2)
-  θ   = dot(r1, r2) / (dr1 * dr2)) |> (x -> round(x, digits=10)) |> acos
-  x1  = (dr1 - r0) / r0
-  x2  = (dr2 - r0) / r0
+  θ   = dot(r1, r2) / (dr1 * dr2) |> (x -> round(x, digits=10)) |> acos
+  x1  = (dr1 - re) / re
+  x2  = (dr2 - re) / re
   x3  = cos(θ) - cos(θe)
 
   fmat[1,1:3] *= 0.0
@@ -80,9 +81,10 @@ function NASA!(F, u, mol)
 
   end
 
-  E += 2 * c5z[1] + exp(-β*((dr1-r0)^2+(dr2-r0)^2)) *sum0
-  E += 0.000055 # correction
+  E += 2 * c5z[1] + exp(-β*((dr1-re)^2+(dr2-re)^2)) *sum0
+  E += (0.44739574026257 / 8065.544) # correction
 
+  E
 end
 
 function _c5z()
@@ -337,7 +339,7 @@ function _c5z()
     0.0000000000000e+00,  0.0000000000000e+00,  0.0000000000000e+00,  0.0000000000000e+00,  0.0000000000000e+00
   ]
 
-  toeV = 0.000124
+  toeV = 1/8065.544
 
   c5z = (f5z*c5zA .+ fbasis*cbasis .+ fcore*ccore .+ frest*crest) * toeV
 
