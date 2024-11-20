@@ -42,7 +42,7 @@ module JMD
     getMols, getPairs,
 
     #potentials
-    COCO, HGNN, MBX, SPCF, TIP4P,
+    COCO, HGNN, MBX, SPCF, TIP4P, SCME,
 
     #simulation.jl
     runNVE, runNVT,
@@ -111,6 +111,7 @@ module JMD
   include("./helpers.jl")
 
   include("./lib/MBX/libmbx.jl")
+  include("./lib/SCME/libscme.jl")
 
   include("./md/bodies.jl")
   include("./md/potentials/MvHffCO.jl")
@@ -120,6 +121,7 @@ module JMD
   include("./md/potentials/SPC-F.jl")
   include("./md/potentials/CH4.jl")
   include("./md/potentials/MBX.jl")
+  include("./md/potentials/SCME.jl")
   include("./md/simulation.jl")
   include("./md/thermostats.jl")
   include("./md/post-processing.jl")
