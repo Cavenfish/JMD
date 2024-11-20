@@ -11,6 +11,10 @@ https://pubs.acs.org/doi/full/10.1021/acs.jctc.2c00598
 struct _SCME_PotVars <: PotVars
   molnum
   cm
+  dp
+  qp
+  op
+  hp
   dp0
   qp0
   dp01
@@ -25,15 +29,34 @@ struct _SCME_PotVars <: PotVars
   qq
   rc_Elec
   iSlab
+  irigidmolecules
   convcrit
+  dqdms
+  d1
+  d2
+  dd1
+  dd2
   d1vQM
   d2vQM
+  d3vQM
+  d4vQM
+  d5vQM
   te
+  td
   dpQM
   qpQM
+  u_ES
+  u_DS
+  u_RP
+  fa_ES
+  fa_DS
+  fa_RP
+  Ar
+  Br
+  Cr
+  rc_Core
   atoms_pbc
   tags
-
 end
 
 function SCME(bdys)
@@ -41,11 +64,17 @@ function SCME(bdys)
   isdefined(JMD, :userTOML) ? tomlFile = userTOML : tomlFile = SCMEtoml
   tom       = TOML.parsefile(tomlFile)
   te        = tom["te"]
+  td        = tom["td"]
+  Ar        = tom["Ar"]
+  Br        = tom["Br"]
+  Cr        = tom["Cr"]
   cell      = tom["cell"]
   nsys      = tom["nsys"]
   system    = tom["system"]
   useDMS    = tom["useDMS"]
   rc_Elec   = tom["rc_Elec"]
+  rc_Disp   = tom["rc_Disp"]
+  rc_Core   = tom["rc_Core"]
   atoms_pbc = tom["atoms_pbc"] 
 
 
@@ -55,10 +84,14 @@ function SCME(bdys)
   cm      = zeros(molnum, 3)
 
   # Moments - irreducible
-  dp = zeros(molnum, 3)
-  qp = zeros(molnum, 3,3)
-  op = zeros(molnum, 3,3,3)
-  hp = zeros(molnum, 3,3,3,3)
+  dp   = zeros(molnum, 3)
+  dp0  = zeros(molnum, 3)
+  dp01 = zeros(molnum, 3)
+  qp   = zeros(molnum, 3,3)
+  qp0  = zeros(molnum, 3,3)
+  qp01 = zeros(molnum, 3,3)
+  op   = zeros(molnum, 3,3,3)
+  hp   = zeros(molnum, 3,3,3,3)
 
   # Polarizabilities - irreducible
   dd   = zeros(molnum, 3,3)
@@ -115,6 +148,11 @@ function SCME(bdys)
   forces_DS = zeros(molnum*9)
   forces_RP = zeros(molnum*9)
 
+  # Maybe move these things into TOML file
+  iSlab           = false
+  irigidmolecules = false
+  convcrit        = 1e-11
+
   tags = repeat([false], n_atoms)
 
   # Load SCME init function as symbol
@@ -146,6 +184,58 @@ function SCME(bdys)
     tags::Ptr{Cint}
   )::Cvoid
 
+  vars = _SCME_PotVars(
+    molnum,
+    cm,
+    dp,
+    qp,
+    op,
+    hp,
+    dp0,
+    qp0,
+    dp01,
+    qp01,
+    NC,
+    cell,
+    d1vH,
+    d2vH,
+    dd,
+    dq,
+    hpol,
+    qq,
+    rc_Elec,
+    iSlab,
+    irigidmolecules,
+    convcrit,
+    dqdms,
+    d1,
+    d2,
+    dd1,
+    dd2,
+    d1vQM,
+    d2vQM,
+    d3vQM,
+    d4vQM,
+    d5vQM,
+    te,
+    td,
+    dpQM,
+    qpQM,
+    u_ES,
+    u_DS,
+    u_RP,
+    fa_ES,
+    fa_DS,
+    fa_RP,
+    Ar,
+    Br,
+    Cr,
+    rc_Core,
+    atoms_pbc,
+    tags
+  )
+
+  vars
 end
 
 function SCME(dv, v, u, p, t)
