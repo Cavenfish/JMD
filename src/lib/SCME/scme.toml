@@ -1,0 +1,7 @@
+cell = [10.0, 0.0, 0.0, 0.0, 10.0, 0.0, 0.0, 0.0, 10.0]
+nsys = 1
+system = [1] 
+useDMS = true
+te = 1.10454150
+rc_Elec = 11.0
+atoms_pbc = [true, true, true]

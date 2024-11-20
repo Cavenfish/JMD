@@ -38,9 +38,21 @@ end
 
 function SCME(bdys)
 
+  isdefined(JMD, :userTOML) ? tomlFile = userTOML : tomlFile = SCMEtoml
+  tom       = TOML.parsefile(tomlFile)
+  te        = tom["te"]
+  cell      = tom["cell"]
+  nsys      = tom["nsys"]
+  system    = tom["system"]
+  useDMS    = tom["useDMS"]
+  rc_Elec   = tom["rc_Elec"]
+  atoms_pbc = tom["atoms_pbc"] 
+
+
   n_atoms = length(bdys)
   coords  = [i.r for i in bdys]
   molnum  = floor(Int64, n_atoms/3)
+  cm      = zeros(molnum, 3)
 
   # Moments - irreducible
   dp = zeros(molnum, 3)

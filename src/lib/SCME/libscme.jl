@@ -1,3 +1,4 @@
+const SCMEtoml   = joinpath(@__DIR__, "scme.toml")
 const libscme    = dlopen(joinpath(@__DIR__, "libscme.so"), Libdl.RTLD_GLOBAL)
 
 
@@ -108,7 +109,7 @@ function scme_ES()
     qpoleQM::Ptr{Cdouble},
     atoms_pbc::Ptr{Cint},
     tags::Ptr{Cint}
-  )
+  )::Cvoid
 
 end
 
@@ -126,7 +127,7 @@ function scme_Disp()
     tags::Ptr{Cint},
     NC::Ptr{Cint},
     rc_Disp::Cdouble
-  )
+  )::Cvoid
 
 end
 
@@ -146,6 +147,6 @@ function scme_Core()
     Br::Ptr{Cdouble},
     Cr::Ptr{Cdouble},
     rc_Core::Cdouble
-  )
+  )::Cvoid
 
 end
