@@ -2,7 +2,7 @@ const SCMEtoml   = joinpath(@__DIR__, "scme.toml")
 const libscme    = dlopen(joinpath(@__DIR__, "libscme.so"), Libdl.RTLD_GLOBAL)
 
 
-function scme_initialize_system()
+function scme_initialize_system!()
   sym = dlsym(libscme, :scme_initilization)
 
   z3 = zeros(3)
@@ -34,8 +34,8 @@ function scme_initialize_system()
 
 end
 
-function scme_scf_step(vars)
-  sym = dlsym(libscme, :scme_scf_step)
+function scme_scf_step!(vars)
+  sym = dlsym(libscme, :scf_step)
 
   @ccall $sym(
     vars.molnum::Cint,
@@ -67,7 +67,7 @@ function scme_scf_step(vars)
 end
 
 
-function scme_ES(vars)
+function scme_ES!(vars, coords)
   sym = dlsym(libscme, :scme_ES)
 
   dpoleQM = vars.dp - 0.5 * vars.dpQM
@@ -75,7 +75,7 @@ function scme_ES(vars)
 
   @ccall $sym(
     vars.molnum::Cint,
-    vars.coords::Ptr{Cdouble},
+    coords::Ptr{Cdouble},
     vars.cm::Ptr{Cdouble},
     vars.rc_Elec::Cdouble,
     vars.system::Ptr{Cint},
@@ -113,12 +113,12 @@ function scme_ES(vars)
 
 end
 
-function scme_Disp(vars)
+function scme_Disp!(vars, coords)
   sym = dlsym(libscme, :scme_Disp)
 
   @ccall $sym(
     vars.molnum::Cint,
-    vars.coords::Ptr{Cdouble},
+    coords::Ptr{Cdouble},
     vars.cell::Ptr{Cdouble},
     vars.atoms_pbc::Ptr{Cint},
     vars.u_DS::Cdouble,
@@ -131,12 +131,12 @@ function scme_Disp(vars)
 
 end
 
-function scme_Core(vars)
+function scme_Core!(vars, coords)
   sym = dlsym(libscme, :scme_Core)
 
   @ccall $sym(
     vars.molnum::Cint,
-    vars.coords::Ptr{Cdouble},
+    coords::Ptr{Cdouble},
     vars.tags::Ptr{Cint},
     vars.cell::Ptr{Cdouble},
     vars.atoms_pbc::Ptr{Cint},
