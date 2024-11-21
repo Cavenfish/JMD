@@ -79,7 +79,7 @@ function SCME(bdys)
 
 
   n_atoms = length(bdys)
-  coords  = [i.r for i in bdys]
+  coords  = [j for i in bdys for j in i.r]
   molnum  = floor(Int64, n_atoms/3)
   cm      = zeros(molnum, 3)
 
@@ -158,6 +158,45 @@ function SCME(bdys)
   # Load SCME init function as symbol
   sym = dlsym(libscme, :scme_initilization)
   
+
+  """
+  int n_atoms,
+  double coords[],
+  double lattice[],
+  int system[],
+  int Nsys,
+  double cm_init[][3],
+  // assigned multipoles
+  double dp_init[][3],
+  double qp_init[][3][3],
+  double op_init[][3][3][3],
+  double hp_init[][3][3][3][3],
+  // assigned polarizabilities
+  double dd_init[][3][3],
+  double dq_init[][3][3][3],
+  double qq_init[][3][3][3][3],
+  // assigned hyperpolarizabilities
+  double hpol_init[][3][3][3],
+  // calculated field and its first derivative
+  double d1vH_init[][3],
+  double d2vH_init[][3][3],
+  // number of cells in x,y,z directions
+  int NC[],
+  // EOJ: ?
+  double te,
+  double rc_Elec,
+  // // useDMS variables
+  double d1_init[][3],
+  double d2_init[][3],
+  double dd1_init[][3][3][3],
+  double dd2_init[][3][3][3],
+  double qatoms[],
+  double dqdms[][3][3][3],
+  bool useDMS,
+  bool pbc[3],
+  bool tags[]   // tagging molecules as QM or MM
+  """
+
   # Call SCME init function 
   @ccall $sym(
     n_atoms::Cint,
