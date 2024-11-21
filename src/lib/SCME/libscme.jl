@@ -72,6 +72,7 @@ function scme_ES!(vars, coords)
 
   dpoleQM = vars.dp - 0.5 * vars.dpQM
   qpoleQM = vars.qp - 0.5 * vars.qpQM
+  E       = Ref{Cdouble}(0)
 
   @ccall $sym(
     vars.molnum::Cint,
@@ -90,7 +91,7 @@ function scme_ES!(vars, coords)
     vars.hp::Ptr{Cdouble},
     vars.dp0::Ptr{Cdouble},
     vars.qp0::Ptr{Cdouble},
-    vars.u_ES::Cdouble,
+    E::Ref{Cdouble},
     vars.fa_ES::Ptr{Cdouble},
     vars.te::Cdouble,
     vars.useDMS::Cint,
@@ -111,17 +112,20 @@ function scme_ES!(vars, coords)
     vars.tags::Ptr{Cint}
   )::Cvoid
 
+  E[]
 end
 
 function scme_Disp!(vars, coords)
   sym = dlsym(libscme, :scme_Disp)
+
+  E = Ref{Cdouble}(0)
 
   @ccall $sym(
     vars.molnum::Cint,
     coords::Ptr{Cdouble},
     vars.cell::Ptr{Cdouble},
     vars.atoms_pbc::Ptr{Cint},
-    vars.u_DS::Cdouble,
+    E::Ref{Cdouble},
     vars.fa_DS::Ptr{Cdouble},
     vars.td::Ptr{Cdouble},
     vars.tags::Ptr{Cint},
@@ -129,19 +133,22 @@ function scme_Disp!(vars, coords)
     vars.rc_Disp::Cdouble
   )::Cvoid
 
+  E[]
 end
 
 function scme_Core!(vars, coords)
   sym = dlsym(libscme, :scme_Core)
 
+  E = Ref{Cdouble}(0)
+
   @ccall $sym(
     vars.molnum::Cint,
     coords::Ptr{Cdouble},
     vars.tags::Ptr{Cint},
-    vars.cell::Ptr{Cdouble},
     vars.atoms_pbc::Ptr{Cint},
     vars.addCore::Cint,
-    vars.u_RP::Cdouble,
+    vars.cell::Ptr{Cdouble},
+    E::Ref{Cdouble},
     vars.fa_RP::Ptr{Cdouble},
     vars.Ar::Ptr{Cdouble},
     vars.Br::Ptr{Cdouble},
@@ -149,4 +156,5 @@ function scme_Core!(vars, coords)
     vars.rc_Core::Cdouble
   )::Cvoid
 
+  E[]
 end
