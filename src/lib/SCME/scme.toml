@@ -1,4 +1,4 @@
-cell = [100.0, 100.0, 100.0]
+cell = [40.0, 40.0, 40.0]
 nsys = 1
 system = [1] 
 useDMS = true
@@ -10,4 +10,4 @@ Cr = [-3.46949797e+00, -5.395612919902546]
 rc_Elec = 11.0
 rc_Core = 40.0
 rc_Disp = 40.0
-atoms_pbc = [true, true, true]
+atoms_pbc = [true, true, false]

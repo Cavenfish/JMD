@@ -159,7 +159,7 @@ function SCME(bdys)
     dd::Ptr{Cdouble}, dq::Ptr{Cdouble}, qq::Ptr{Cdouble},
     hpol::Ptr{Cdouble},
     d1vH::Ptr{Cdouble}, d2vH::Ptr{Cdouble},
-    zeros(3)::Ptr{Cint},
+    NC::Ptr{Cint},
     te::Cdouble,
     rc_Elec::Cdouble,
     d1::Ptr{Cdouble},
