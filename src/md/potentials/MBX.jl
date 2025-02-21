@@ -19,65 +19,19 @@ struct _MBX_PotVars <: PotVars
   mon_nams
 end
 
-function MBX(bdys)
-  monomers = Dict()
-  monomers["nh4+"] = ["N","H","H","H","H"]
-  monomers["nh3"] = ["N","H","H","H"]
-  monomers["ch4"] = ["C","H","H","H","H"]
-  monomers["pf6-"] = ["P","F","F","F","F","F","F"]
-  monomers["co2"] = ["C","O","O"]
-  monomers["li"] = ["Li"]
-  monomers["na"] = ["Na"]
-  monomers["k"] = ["K"]
-  monomers["rb"] = ["Rb"]
-  monomers["cs"] = ["Cs"]
-  monomers["f"] = ["F"]
-  monomers["cl"] = ["Cl"]
-  monomers["br"] = ["Br"]
-  monomers["i"] = ["I"]
-  monomers["ar"] = ["Ar"]
-  monomers["he"] = ["He"]
-  monomers["h2"] = ["H","H"]
-  monomers["h2o"] = ["O","H","H"]
-  monomers["n2o5"] = ["O","N","N","O","O","O","O"]
+function MBX(bdys::Vector{MyAtoms})
 
   xyz = [j for i in bdys for j in i.r]
 
   at_nams = [string(i.s) for i in bdys]
 
-  mon_nams = String[]
-  num_ats  = Int32[]
-
-  tmp = values(monomers) |> (x -> length.(x)) |> unique |> sort |> reverse
-
-  a = 1
-  b = 0
-  while a <= length(at_nams)
-    for i in tmp
-      a+i-1 > length(at_nams) && continue
-      cur_ats = at_nams[a:a+i-1]
-      for j in keys(monomers)
-        if monomers[j] == cur_ats
-          push!(mon_nams, j)
-          push!(num_ats, length(monomers[j]))
-          a += length(monomers[j])
-          break
-        end
-      end
-    end
-    b += 1
-    if b > length(at_nams)
-      @error "Check xyz file"
-    end
-  end
+  mon_nams, num_ats = mbx_get_monomer_info(at_nams)
 
   num_mon = length(mon_nams)
 
   sym = dlsym(libmbx, :initialize_system_py_)
-  
-  isdefined(JMD, :userJson) ? json = userJson : json = MBXjson
 
-  vars = _MBX_PotVars(xyz, json, num_ats, at_nams, num_mon, mon_nams)
+  vars = _MBX_PotVars(xyz, MBX_GAS_JSON, num_ats, at_nams, num_mon, mon_nams)
 
   @ccall $sym(
     vars.xyz::Ptr{Cdouble},
@@ -87,6 +41,44 @@ function MBX(bdys)
     vars.num_mon::Ref{Cint},
     vars.json::Ptr{Cchar}
   )::Cvoid
+
+  vars
+end
+
+function MBX(cell::MyCell)
+
+  xyz = getPos(cell)
+
+  at_nams = [string(i) for i in cell.symbols]
+
+  mon_nams, num_ats = mbx_get_monomer_info(at_nams)
+
+  num_mon = length(mon_nams)
+
+  sym = dlsym(libmbx, :initialize_system_py_)
+
+  vars = _MBX_PotVars(xyz, MBX_PBC_JSON, num_ats, at_nams, num_mon, mon_nams)
+
+  @ccall $sym(
+    vars.xyz::Ptr{Cdouble},
+    vars.num_ats::Ptr{Cint},
+    vars.at_nams::Ptr{Ptr{Cchar}},
+    vars.mon_nams::Ptr{Ptr{Cchar}},
+    vars.num_mon::Ref{Cint},
+    vars.json::Ptr{Cchar}
+  )::Cvoid
+
+  if !isdiag(cell.lattice)
+    @warn "Cell lattice is not diagonal.
+    MBX requires a diagonal lattice.
+    Current lattice will be cast as diagonal 
+      --> cell.lattice .= Diagonal(cell.lattice)"
+
+    cell.lattice .= Diagonal(cell.lattice)
+  end
+
+  box  = reshape(cell.lattice, 9) |> (x -> convert(Vector{Float64}, x))
+  mbx_set_box(box)
 
   vars
 end
@@ -129,4 +121,36 @@ function MBX(F, G, y0, p)
     return E
   end
 
+end
+
+function MBX(F, G, cell::MyCell, lat)
+  tmp          = deepcopy(cell)
+  tmp.lattice .= reshape(lat, (3,3))
+
+  # Force all bond lengths to be 0.975 to prevent bias
+  pos  = getPos(cell)
+  for i = 1:3:length(pos)
+    ro, rh1, rh2 = pos[[i, i+1, i+2]]
+    
+    rvec  = ro - rh1
+    r     = norm(rvec)
+    x     = 0.975 - r
+    rh1 .-= x * (rvec / r)
+
+    rvec  = ro - rh2
+    r     = norm(rvec)
+    x     = 0.975 - r
+    rh2 .-= x * (rvec / r)
+
+    #Maybe I can condense this somehow
+  end
+
+  # Orthogonal stress because MBX only does orthogonal
+  if G != nothing
+    G .= getNumericalStressOrthogonal(MBX, tmp) |> (x -> reshape(x, 9))
+  end
+
+  if F != nothing
+    return getPotEnergy(MBX, tmp)
+  end
 end

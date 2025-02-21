@@ -47,18 +47,40 @@ function SPCF(dv, v, u, p, t)
 
     E += _Coulomb!(F, u, o1, o2, P.Qo, P.Qo)
 
+    if any(p.PBC)
+      L  = eachrow(p.lattice)
+      E +=_pbcInteractions!(F, u, o1, o2, _vdw, L, p.NC, (P.ϵ, P.σ))
+      E +=_pbcInteractions!(F, u, o1, o2, _Coulomb, L, p.NC, (P.Qo, P.Qo))
+    end
+
     for i in [h1, h2]
       for j in [h3, h4]
         E += _Coulomb!(F, u, i, j, P.Qh, P.Qh)
+
+        if any(p.PBC)
+          L  = eachrow(p.lattice)
+          E +=_pbcInteractions!(F, u, i, j, _Coulomb, L, p.NC, (P.Qh, P.Qh))
+        end
+
       end
     end
 
     for i in [h1,h2]
       E += _Coulomb!(F, u, o2, i, P.Qo, P.Qh)
+
+      if any(p.PBC)
+        L  = eachrow(p.lattice)
+        E +=_pbcInteractions!(F, u, o2, i, _Coulomb, L, p.NC, (P.Qo, P.Qh))
+      end
     end
 
     for i in [h3,h4]
       E += _Coulomb!(F, u, o1, i, P.Qo, P.Qh)
+
+      if any(p.PBC)
+        L  = eachrow(p.lattice)
+        E +=_pbcInteractions!(F, u, o1, i, _Coulomb, L, p.NC, (P.Qo, P.Qh))
+      end
     end
 
   end
@@ -101,18 +123,36 @@ function SPCF(F, G, y0, p)
 
     E += _Coulomb!(forces, u, o1, o2, P.Qo, P.Qo)
 
+    if any(p.PBC)
+      L  = eachrow(p.lattice)
+      E +=_pbcInteractions!(forces, u, o1, o2, _vdw, L, p.NC, (P.ϵ, P.σ))
+      E +=_pbcInteractions!(forces, u, o1, o2, _Coulomb, L, p.NC, (P.Qo, P.Qo))
+    end
+
     for i in [h1, h2]
       for j in [h3, h4]
         E += _Coulomb!(forces, u, i, j, P.Qh, P.Qh)
+        if any(p.PBC)
+          L  = eachrow(p.lattice)
+          E +=_pbcInteractions!(forces, u, i, j, _Coulomb, L, p.NC, (P.Qh, P.Qh))
+        end
       end
     end
 
     for i in [h1,h2]
       E += _Coulomb!(forces, u, o2, i, P.Qo, P.Qh)
+      if any(p.PBC)
+        L  = eachrow(p.lattice)
+        E +=_pbcInteractions!(forces, u, o2, i, _Coulomb, L, p.NC, (P.Qo, P.Qh))
+      end
     end
 
     for i in [h3,h4]
       E += _Coulomb!(forces, u, o1, i, P.Qo, P.Qh)
+      if any(p.PBC)
+        L  = eachrow(p.lattice)
+        E +=_pbcInteractions!(forces, u, o1, i, _Coulomb, L, p.NC, (P.Qo, P.Qh))
+      end
     end
 
   end

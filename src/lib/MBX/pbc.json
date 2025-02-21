@@ -1,0 +1,19 @@
+{
+    "Note" : "Default MBX configuration file for PBC systems",
+    "MBX" : {
+        "box" : [40.0, 0.0, 0.0, 0.0, 40.0, 0.0, 0.0, 0.0, 40.0],
+        "twobody_cutoff"   : 9.0,
+        "threebody_cutoff" : 7.0,
+        "dipole_tolerance" : 1E-08,
+        "dipole_max_it"    : 400,
+        "dipole_method"     : "cg",
+        "alpha_ewald_elec" : 0.6,
+        "grid_density_elec" : 2.5,
+        "spline_order_elec" : 6,
+        "alpha_ewald_disp" : 0.6,
+        "grid_density_disp" : 2.5,
+        "spline_order_disp" : 6,
+        "ignore_2b_poly" : [],
+        "ignore_3b_poly" : []
+    }
+}

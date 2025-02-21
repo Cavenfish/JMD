@@ -93,6 +93,13 @@ function swapAtoms!(bdys, i, j)
   bdys[j].r = a
 end
 
+function centerBdys!(bdys)
+  com = CoM(bdys)
+  for i in bdys
+    i.r -= com
+  end
+end
+
 function CoM(bdys)
   M = sum([i.m for i in bdys])
   r = sum([i.m*i.r for i in bdys])
@@ -261,13 +268,37 @@ function getCOVibEnergy(pos,vel,mas; pot=nothing)
     E += pot(true, nothing, x0, optVars([[1,2]], []))
   end
 
-  return E
+  E
 end
 
-function getPotEnergy(EoM, bdys)
+function getPotEnergy(EoM, bdys::Vector{MyAtoms})
   x0, vars = prep4pot(EoM, bdys)
   energy   = EoM(true, nothing, x0, vars)
-  return energy
+  
+  energy
+end
+
+function getPotEnergy(EoM, cell::MyCell)
+  x0, vars = prep4pot(EoM, cell)
+  energy   = EoM(true, nothing, x0, vars)
+  
+  energy
+end
+
+function getForces(EoM, bdys::Vector{MyAtoms})
+  x0, vars = prep4pot(EoM, bdys)
+  G        = zero(x0)
+  EoM(nothing, G, x0, vars)
+
+  [-G[i:i+2] for i = 1:3:length(G)]
+end
+
+function getForces(EoM, cell::MyCell)
+  x0, vars = prep4pot(EoM, cell)
+  G        = zero(x0)
+  EoM(nothing, G, x0, vars)
+
+  [-G[i:i+2] for i = 1:3:length(G)]
 end
 
 function getSurfaceMolecules(bdys; α=nothing)

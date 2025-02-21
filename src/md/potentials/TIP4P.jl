@@ -51,9 +51,20 @@ function TIP4P(dv, v, u, p, t)
 
     E += _vdw!(F, u, o1, o2, P.ϵoo, P.σoo)
 
+    if any(p.PBC)
+      L  = eachrow(p.lattice)
+      E +=_pbcInteractions!(F, u, o1, o2, _vdw, L, p.NC, (P.ϵoo, P.σoo))
+    end
+
     for i in [h1, h2]
       for j in [h3, h4]
         E += _Coulomb!(F, u, i, j, P.Qh, P.Qh)
+
+        if any(p.PBC)
+          L  = eachrow(p.lattice)
+          E +=_pbcInteractions!(F, u, o1, o2, _Coulomb, L, p.NC, (P.Qh, P.Qh))
+        end
+
       end
     end
 
@@ -62,7 +73,7 @@ function TIP4P(dv, v, u, p, t)
   end
 
   dv .= F ./ p.m
-  if typeof(p) == NVTsimu
+  if p.NVT
     p.thermostat!(p.temp,dv, v, p.m, p.thermoInps)
   end
 
